@@ -6,7 +6,7 @@ import java.nio.charset.Charset;
 
 public class Client {
 
-	private static final int QUERY_TIMEOUT = 5 * 1000;
+	private static final int QUERY_TIMEOUT = 13 * 1000;
 	private static final int INPUT_BUFFER_SIZE = 65500;
 	
 	public static void main(String[] args) {
@@ -45,7 +45,12 @@ public class Client {
 			socket.receive(packetRx);
 			ByteBuffer bb = ByteBuffer.wrap(packetRx.getData(), 0, packetRx.getLength());
 			bb.order(ByteOrder.BIG_ENDIAN);
-			log.Log("Success! Message saved as entry number " + bb.getInt() + ".");
+			int instanceNo = bb.getInt();
+			if (instanceNo > 0) {
+				log.Log("Success! Message saved as entry number " + instanceNo + ".");
+			} else {
+				log.Log("Failure! Message not posted.");
+			}
 			
 			socket.close();
 		} catch (SocketException e) {

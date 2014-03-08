@@ -35,4 +35,8 @@ public class NodeAddress implements Serializable {
     public int hashCode() {
         return address.hashCode() + new Integer(port).hashCode();
     }
+    
+    public String toString() {
+    	return address + ":" + port;
+    }
 }

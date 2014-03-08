@@ -14,7 +14,6 @@ public class Learner implements InstanceNumberProvider {
 	
 	private int maxInstanceNo = 0;
 	
-	
 	public Learner(int quorumSize, ILog log) {
 		this.quorumCount = quorumSize;
 		this.log = log;
@@ -25,7 +24,6 @@ public class Learner implements InstanceNumberProvider {
 		return maxInstanceNo;
 	}
 	
-	
 	protected void processAccepted(NodeAddress acceptorAddr, int instanceNo, WallPost v) {
 		log.Log("Learner: Received an accept from " + acceptorAddr.getAddress() + ":" + acceptorAddr.getPort()
 				+ " for instance no " + instanceNo + ".");
@@ -33,9 +31,10 @@ public class Learner implements InstanceNumberProvider {
 		if (instanceStates.containsKey(instanceNo)) {
 			InstanceState instanceState = instanceStates.get(instanceNo);
 			instanceState.acceptors.add(acceptorAddr);
-			if (instanceState.acceptors.size() == quorumCount) {
+			if (instanceState.acceptors.size() == quorumCount && !instanceState.committed) {
 				log.Log("Learner: A quorum of acceptors has agreed on value \""
 						+ v.getMessage() + "\" for instance " + instanceNo + ".");
+				instanceState.committed = true;
 				journal.put(instanceNo, v);
 			}
 		} else {
@@ -50,5 +49,6 @@ public class Learner implements InstanceNumberProvider {
 	
 	private class InstanceState {
 		public HashSet<NodeAddress> acceptors = new HashSet<NodeAddress>();
+		public boolean committed;
 	}
 }

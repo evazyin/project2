@@ -34,4 +34,8 @@ public class WallPost implements Serializable {
     public int hashCode() {
         return origin.hashCode() + message.hashCode();
     }
+    
+    public String toString() {
+    	return message + " (" + origin + ")";
+    }
 }
