@@ -32,11 +32,24 @@ public class Main {
 		
 		ILog log = new StandardLog();
 		
-		new Proposer(nodeNumber, port, acceptors, log).start();
-		new Acceptor(acceptors.get(nodeNumber - 1).getPort(), learners, log).start();
-		new Learner(
-				learners.get(nodeNumber - 1).getPort(),
-				(int)(Math.floor((double)acceptors.size() / 2.0) + 1),
+		Learner learner = new Learner((int)(Math.floor((double)acceptors.size() / 2.0) + 1), log);
+		DatagramSocket learnerSocket = new DatagramSocket(learners.get(nodeNumber - 1).getPort());
+		new LearnerListener(learner, learnerSocket, log).start();
+		
+		DatagramSocket acceptorSocket = new DatagramSocket(acceptors.get(nodeNumber - 1).getPort());
+		new AcceptorListener(
+				new Acceptor(new AcceptorSender(learners, acceptorSocket, log), log),
+				acceptorSocket, log).start();
+		
+		DatagramSocket proposerSocket = new DatagramSocket(port);
+		new ProposerListener(
+				new Proposer(
+						nodeNumber,
+						new ProposerSender(proposerSocket, log),
+						acceptors,
+						learner,
+						log),
+				proposerSocket,
 				log).start();
 	}
 }
