@@ -38,8 +38,7 @@ public class Main {
 		
 		DatagramSocket acceptorSocket = new DatagramSocket(acceptors.get(nodeNumber - 1).getPort());
 		new AcceptorListener(
-				new Acceptor(new AcceptorSender(learners, acceptorSocket, log), log),
-				acceptorSocket, log).start();
+				new AcceptorSender(learners, acceptorSocket, log), acceptorSocket, log).start();
 		
 		DatagramSocket proposerSocket = new DatagramSocket(port);
 		new ProposerListener(

@@ -15,8 +15,7 @@ public class ProposerSender {
 	
 	public void sendPrepareMessageToAcceptors(
 			int instanceNo, int n, Iterable<NodeAddress> acceptors) throws IOException {
-		log.Log("Proposer: Sending prepare message to acceptors for instance no "
-				+ instanceNo + " (n = " + n + ").");
+		log.Log("Proposer [" + instanceNo + "]: Sending prepare message to acceptors (n = " + n + ").");
 
 		AcceptorMessageFormatter formatter = new AcceptorMessageFormatter();
 		RawMessage acceptorMessage = formatter.createPrepareMessage(instanceNo, n);
@@ -33,8 +32,8 @@ public class ProposerSender {
 	
 	public void sendAcceptMessageToAcceptors(
 			int instanceNo, int n, WallPost v, Iterable<NodeAddress> acceptors) throws IOException {
-		log.Log("Proposer: Sending accept message to acceptors for instance no "
-				+ instanceNo + " (n = " + n + "), message \"" + v.getMessage() + "\".");
+		log.Log("Proposer [" + instanceNo + "]: Sending accept message to acceptors (n = "
+				+ n + "), message \"" + v.getMessage() + "\".");
 
 		AcceptorMessageFormatter formatter = new AcceptorMessageFormatter();
 		RawMessage acceptorMessage = formatter.createAcceptMessage(instanceNo, n, v);
@@ -50,10 +49,21 @@ public class ProposerSender {
 	}
 	
 	public void sendNotificationToClient(int instanceNo, NodeAddress client) throws IOException {
-		log.Log("Proposer: Sending a notification to client for instance no "
-				+ instanceNo + ".");
+		log.Log("Proposer [" + instanceNo + "]: Sending a notification to client.");
 		
 		RawMessage message = new ClientMessageFormatter().createConfirmationMessage(instanceNo);
+		DatagramPacket packet = new DatagramPacket(
+				message.getData(),
+				message.getLength(),
+				client.getAddress(),
+				client.getPort());
+		socket.send(packet);
+	}
+	
+	public void sendFailureNotificationToClient(int instanceNo, NodeAddress client) throws IOException {
+		log.Log("Proposer [" + instanceNo + "]: Sending a failure notification to client.");
+		
+		RawMessage message = new ClientMessageFormatter().createFailureMessage();
 		DatagramPacket packet = new DatagramPacket(
 				message.getData(),
 				message.getLength(),

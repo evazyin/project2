@@ -14,7 +14,9 @@ public class AcceptorListener extends Thread {
 	
 	private static final int INPUT_BUFFER_SIZE = 65500;
 	
-	private final Acceptor acceptor;
+	private final HashMap<Integer, Acceptor> acceptors = new HashMap<Integer, Acceptor>();
+	
+	private final AcceptorSender acceptorSender;
 	private final DatagramSocket socket;
 	private final ILog log;
 	
@@ -22,8 +24,8 @@ public class AcceptorListener extends Thread {
 	private Timer timer;
 	private Random random;
 	
-	public AcceptorListener(Acceptor acceptor, DatagramSocket socket, ILog log) {
-		this.acceptor = acceptor;
+	public AcceptorListener(AcceptorSender acceptorSender, DatagramSocket socket, ILog log) {
+		this.acceptorSender = acceptorSender;
 		this.socket = socket;
 		this.log = log;
 	}
@@ -57,7 +59,18 @@ public class AcceptorListener extends Thread {
 			{
 				ByteBuffer bb = ByteBuffer.wrap(message.getData(), 1, 2 * Integer.SIZE / Byte.SIZE);
 				bb.order(ByteOrder.BIG_ENDIAN);
-				acceptor.processPrepare(proposerAddr, bb.getInt(), bb.getInt());
+				int instanceNo = bb.getInt();
+				int n = bb.getInt();
+				
+				Acceptor acceptor;
+				if (acceptors.containsKey(instanceNo)) {
+					acceptor = acceptors.get(instanceNo);
+				} else {
+					acceptor = new Acceptor(instanceNo, acceptorSender, log);
+					acceptors.put(instanceNo, acceptor);
+				}
+				
+				acceptor.processPrepare(proposerAddr, n);
 				break;
 			}
 			case MessageType.ACC_ACCEPT:
@@ -65,6 +78,8 @@ public class AcceptorListener extends Thread {
 				int fixedPartSize = 2 * Integer.SIZE / Byte.SIZE;
 				ByteBuffer bb = ByteBuffer.wrap(message.getData(), 1, fixedPartSize);
 				bb.order(ByteOrder.BIG_ENDIAN);
+				int instanceNo = bb.getInt();
+				int n = bb.getInt();
 				
 				int valueOffset = 1 + fixedPartSize;
 				ByteArrayInputStream bais = new ByteArrayInputStream(
@@ -72,7 +87,15 @@ public class AcceptorListener extends Thread {
 				ObjectInputStream ois = new ObjectInputStream(bais);
 				WallPost v = (WallPost)ois.readObject();
 				
-				acceptor.processAccept(proposerAddr, bb.getInt(), bb.getInt(), v);
+				Acceptor acceptor;
+				if (acceptors.containsKey(instanceNo)) {
+					acceptor = acceptors.get(instanceNo);
+				} else {
+					acceptor = new Acceptor(instanceNo, acceptorSender, log);
+					acceptors.put(instanceNo, acceptor);
+				}
+
+				acceptor.processAccept(proposerAddr, n, v);
 				break;
 			}
 			default:

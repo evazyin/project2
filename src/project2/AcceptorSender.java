@@ -22,10 +22,9 @@ public class AcceptorSender {
 			int n,
 			int lastAcceptedN,
 			WallPost lastAcceptedV) throws IOException {
-		log.Log("Acceptor: Sending a promise for instance no " + instanceNo + ", n = " + n + ". "
-				+ (lastAcceptedN > 0?
-						"Last accepted n = " + lastAcceptedN + ", last value = " + lastAcceptedV.toString() + "."
-						: "No values accepted before."));
+		log.Log("Acceptor [" + instanceNo + "]: Sending a promise (n = " + n + "). " + (lastAcceptedN > 0?
+					"Last accepted n = " + lastAcceptedN + ", last value = " + lastAcceptedV.toString() + "."
+					: "No values accepted before."));
 		
 		ProposerMessageFormatter formatter = new ProposerMessageFormatter();
 		RawMessage message = formatter.createPromiseMessage(instanceNo, n, lastAcceptedN, lastAcceptedV);
@@ -35,7 +34,7 @@ public class AcceptorSender {
 	}
 	
 	public void sendReject(NodeAddress proposerAddr, int instanceNo, int n) throws IOException {
-		log.Log("Acceptor: Rejecting a request for instance no " + instanceNo + ", n = " + n + ". ");
+		log.Log("Acceptor [" + instanceNo + "]: Rejecting a request (n = " + n + "). ");
 		
 		ProposerMessageFormatter formatter = new ProposerMessageFormatter();
 		RawMessage message = formatter.createNackMessage(instanceNo, n);
@@ -46,7 +45,7 @@ public class AcceptorSender {
 	
 	public void sendAccept(NodeAddress proposerAddr, int instanceNo, int n, WallPost v)
 			throws IOException {
-		log.Log("Acceptor: Accepting a request for instance no " + instanceNo + ", n = " + n + ". ");
+		log.Log("Acceptor [" + instanceNo + "]: Accepting a request (n = " + n + "). ");
 		
 		ProposerMessageFormatter proposerFormatter = new ProposerMessageFormatter();
 		RawMessage proposerMessage = proposerFormatter.createAcceptedMessage(instanceNo, n);

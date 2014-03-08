@@ -40,8 +40,8 @@ public class Proposer {
 	public void processPromise(
 			NodeAddress acceptor, int instanceNo, int n, int lastAcceptedN, WallPost lastAcceptedV)
 			throws IOException {
-		log.Log("Proposer: Received a promise from acceptor " + acceptor.getAddress() + ":" + acceptor.getPort()
-				+ " for instance no " + instanceNo + " (n = " + n + ").");
+		log.Log("Proposer [" + instanceNo + "]: Received a promise from acceptor " + acceptor.getAddress() + ":" + acceptor.getPort()
+				+ " (n = " + n + ").");
 		
 		InstanceState instanceState = instanceStates.get(instanceNo);
 		instanceState.promises.add(acceptor);
@@ -68,8 +68,8 @@ public class Proposer {
 	}
 	
 	public void processAccept(NodeAddress acceptor, int instanceNo, int n) throws IOException {
-		log.Log("Proposer: Received an accept from acceptor " + acceptor.getAddress() + ":" + acceptor.getPort()
-				+ " for instance no " + instanceNo + " (n = " + n + ").");
+		log.Log("Proposer [" + instanceNo + "]: Received an accept from acceptor " + acceptor.getAddress() + ":" + acceptor.getPort()
+				+ " (n = " + n + ").");
 		
 		InstanceState instanceState = instanceStates.get(instanceNo);
 		instanceState.accepts.add(acceptor);
@@ -81,8 +81,8 @@ public class Proposer {
 	}
 	
 	public void processNack(NodeAddress acceptor, int instanceNo, int n) throws IOException {
-		log.Log("Proposer: Received a reject from acceptor " + acceptor.getAddress() + ":" + acceptor.getPort()
-				+ " for instance no " + instanceNo + " (n = " + n + ").");
+		log.Log("Proposer [" + instanceNo + "]: Received a reject from acceptor " + acceptor.getAddress() + ":" + acceptor.getPort()
+				+ " (n = " + n + ").");
 		
 		InstanceState instanceState = instanceStates.get(instanceNo);
 		if (!instanceState.abandoned) {
@@ -123,7 +123,7 @@ public class Proposer {
 	}
 	
 	private void handleTimeout(int instanceNo) {
-		log.Log("Proposer: Request for instance no " + instanceNo + " has timed out.");
+		log.Log("Proposer [" + instanceNo + "]: Request has timed out.");
 		
 		try {
 			InstanceState instanceState = instanceStates.get(instanceNo);
@@ -135,10 +135,10 @@ public class Proposer {
 				proposerSender.sendPrepareMessageToAcceptors(instanceNo, instanceState.lastNSent, acceptors);
 			} else {
 				instanceState.abandoned = true;
-				log.Log("Proposer: Maximum number of retries reached for instance no " + instanceNo + ". Abandoning request.");
+				log.Log("Proposer [" + instanceNo + "]: Reached the maximum number of retries. Abandoning request.");
 				NodeAddress client = (instanceState.valueForAcceptedNMax != null?
 						instanceState.valueForAcceptedNMax : instanceState.originalValue).getOrigin();
-				proposerSender.sendNotificationToClient(0, client);
+				proposerSender.sendFailureNotificationToClient(instanceNo, client);
 			}
 		} catch (IOException e) {
 			log.LogError(e.getMessage());
